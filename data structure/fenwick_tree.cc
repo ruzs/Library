@@ -1,26 +1,19 @@
-#include<bits/stdc++.h>
-
+#include <bits/stdc++.h>
 
 
 template <typename T>
 struct fenwick {
 	vector<T> a;
-	int n;
-	fenwick(int _n) : n(_n) {
-		a.resize(n);
-	}
+	fenwick(int n) { a.resize(n + 1); }
+
 	void add(int p, T x) {
-		while(p < n) {
-			a[p] += x;
-			p += p & -p;
-		}
+		do a[p] += x;
+		while ((p += p & -p) < a.size());
 	}
 	T sum(int p) {
 		T r{};
-		while(p) {
-			r += a[p];
-			p -= p & -p;
-		}
+		do r += a[p];
+		while (p -= p & -p);
 		return r;
 	}
 };
