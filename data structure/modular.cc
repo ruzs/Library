@@ -44,15 +44,15 @@ public:
 	template <typename U> friend auto operator-(const modular& lhs, const U& b) { return modular(lhs) -= b; }
 	template <typename U> friend auto operator*(const modular& lhs, const U& b) { return modular(lhs) *= b; }
 	template <typename U> friend auto operator/(const modular& lhs, const U& b) { return modular(lhs) /= b; }
-	template <typename U> friend auto operator==(const modular& lhs, const U& b) { return lhs.x == b; }
-	template <typename U> friend auto operator!=(const modular& lhs, const U& b) { return lhs.x != b; }
 	template <typename U> friend auto operator+(const U& b, const modular& rhs) { return modular(b) += rhs; }
 	template <typename U> friend auto operator-(const U& b, const modular& rhs) { return modular(b) -= rhs; }
 	template <typename U> friend auto operator*(const U& b, const modular& rhs) { return modular(b) *= rhs; }
 	template <typename U> friend auto operator/(const U& b, const modular& rhs) { return modular(b) /= rhs; }
+	template <typename U> friend auto operator==(const modular& lhs, const U& b) { return lhs.x == b; }
+	template <typename U> friend auto operator!=(const modular& lhs, const U& b) { return lhs.x != b; }
 	template <typename U> friend auto operator==(const U& b, const modular& rhs) { return b == rhs.x; }
 	template <typename U> friend auto operator!=(const U& b, const modular& rhs) { return b != rhs.x; }
-	friend auto& operator>>(istream& in, modular& m) { cin >> m.x; return in; 	}
+	friend auto& operator>>(istream& in, modular& m) { cin >> m.x; return in; }
 	friend auto& operator<<(ostream& out, modular& m) { cout << m.x; return out; }
 };
 
