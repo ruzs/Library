@@ -1,24 +1,17 @@
 #include <bits/stdc++.h>
 
-auto getPi(string& p) {
-	vector<int> r(p.size());
-	for (int i = 1, j = 0; i < p.size(); ++i) {
-		while (j && p[i] != p[j]) j = r[j - 1];
-		if (p[i] == p[j]) r[i] = ++j;
+
+
+auto KMP = [](string & s, string & t) {
+	int n = s.size();
+	vector<int> pi(n), r;
+	for(int i =1, j =0; i<n; ++i) {
+		while(j && s[i] != s[j]) j = pi[j - 1];
+		if (s[i] == s[j]) pi[i] = ++j;
+	}
+	for(int i =0, j =0; i<t.size(); ++i) {
+		while(j && t[i] != s[j]) j = pi[j - 1];
+		if (t[i] == s[j] && ++j == n) r.push_back(i - n + 1);
 	}
 	return r;
-}
-auto KMP(string& h, string& t) {
-	vector<int> r, pi = getPi(t);
-	for (int i = 0, j = 0; i < h.size(); ++i) {
-		while (j && h[i] != t[j]) j = pi[j - 1];
-		if (h[i] == t[j]) {
-			if (j == t.size() - 1) {
-				r.push_back(i - t.size() + 1);
-				j = pi[j];
-			}
-			else j++;
-		}
-	}
-	return r;
-}
+};
