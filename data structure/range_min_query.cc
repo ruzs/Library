@@ -48,19 +48,39 @@ struct rmq {
 
 // if there a log of query...
 // O(n lg n + Q), preprocess: O(n lg n), for each query: O(1)
-template <class T, class Comp = less<T>>
-struct range_min {
-	vector<vector<T>> a;
-	range_min(const vector<T> &_a) {
-		int d = 32 - __builtin_clz(_a.size());
-		a.resize(d, vector<T>(1 << d));
-		copy(_a.begin(), _a.end(), a[0].begin());
-		for (int i = 0; i < d - 1; ++i)
-			for (int j = 0; j < n; ++j)
-				a[i + 1][j] = min(a[i][j], a[i][min(n - 1, j + (1 << i))], Comp());
+template <class T, class Cmp = less<T>>
+struct rmq {
+	vector<array<int, 20>> sp;
+	vector<int> lg;
+
+	void assign(vector<int>& a) {
+		int n = a.size();
+		sp.resize(n);
+		lg.resize(n + 1);
+		for(int i =0; i<n; ++i) sp[i][0] = a[i];
+		for(int i =2; i<=n; ++i) lg[i] = lg[i>>1] + 1;
+		for(int j =1; j<20; ++j)
+			for(int i =0; i+(1<<j)<=n; ++i)
+				sp[i][j] = min(sp[i][j - 1], sp[i + (1<<j-1)][j - 1], Cmp());
 	}
-	T query(int s, int e) {
-		int d = 31 - __builtin_clz(e - s + 1);
-		return min(a[d][s], a[d][e - (1 << d) + 1], Comp());
+	int query(int l, int r) {
+		int j = lg[r - l + 1];
+		return min(sp[l][j], sp[r - (1 << j) + 1][j], Cmp());
+	}
+};
+
+
+template <class T, class Cmp = less<T>> struct rmq {
+	vector<array<int, 20>> sp;
+	void assign(int* a, int n) {
+		sp.resize(n);
+		for (int i = 0; i < n; ++i) sp[i][0] = a[i];
+		for (int j = 1; j < 20; ++j) for (int i = 0; i + (1 << j) <= n; ++i)
+			sp[i][j] = min(sp[i][j - 1], sp[i + (1 << j - 1)][j - 1], Cmp());
+	}
+	void assign(const vector<int>& a) { assign(a.data(), a.size()); }
+	int query(int l, int r) {
+		int j = 31 - __builtin_clz(r - l + 1);
+		return min(sp[l][j], sp[r - (1 << j) + 1][j], Cmp());
 	}
 };
