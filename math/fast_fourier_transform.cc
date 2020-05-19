@@ -1,35 +1,38 @@
 #include <bits/stdc++.h>
 
-
 using cd = complex<double>;
 const double PI = acos(-1);
 
-void fft(vector<cd>& a, bool inv) {
-	int n = a.size();
-	for (int i = 1, j = 0, bit; i < n; i++) {
-		for (bit = n >> 2; j & bit; bit >>= 1) j ^= bit;
-		if (i < j) swap(a[i], a[j]);
-	}
-	for (int k = 2; k <= n; k <<= 1) {
-		double ang = 2 * PI / k * (inv ? -1 : 1);
-		cd wk(cos(ang), sin(ang));
-		for (int i = 0; i < n; i += k) {
-			cd w(1);
-			for (int j = 0; j < k / 2; ++j, w *= wk) {
-				cd u = a[i + j], v = a[i + j + k / 2] * w;
-				a[i + j] = u + v;
-				a[i + j + k / 2] = u - v;
-			}
-		}
-	}
-	if (inv) for (cd& x : a) x /= n;
+void fft(vector<cd> & a, bool inv) {
+    int n = a.size();
+    for (int i = 1, j = 0, bit; i < n; i++) {
+        for (bit = n >> 1; j & bit; bit >>= 1) j ^= bit;
+        j ^= bit;
+        if (i < j) swap(a[i], a[j]);
+    }
+    for (int len = 2; len <= n; len <<= 1) {
+        double ang = 2 * PI / len * (inv ? -1 : 1);
+        cd wlen(cos(ang), sin(ang));
+        for (int i = 0; i < n; i += len) {
+            cd w(1);
+            for (int j = 0; j < len / 2; j++) {
+                cd u = a[i + j], v = a[i + j + len / 2] * w;
+                a[i + j] = u + v;
+                a[i + j + len / 2] = u - v;
+                w *= wlen;
+            }
+        }
+    }
+    if (inv) for (cd & x : a) x /= n;
 }
 vector<int> multiply(vector<int> const& a, vector<int> const& b) {
     vector<cd> fa(a.begin(), a.end()), fb(b.begin(), b.end());
     int n = 2;
     while (n < a.size() + b.size()) n <<= 1;
-    fa.resize(n); fb.resize(n);
-    fft(fa, false); fft(fb, false);
+    fa.resize(n);
+	fb.resize(n);
+    fft(fa, false);
+	fft(fb, false);
     for (int i = 0; i < n; i++) fa[i] *= fb[i];
     fft(fa, true);
     vector<int> result(n);
