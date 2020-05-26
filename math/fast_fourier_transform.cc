@@ -3,46 +3,66 @@
 using cd = complex<double>;
 const double PI = acos(-1);
 
-void fft(vector<cd> & a, bool inv) {
+void fft(vector<cd>& a, bool inv) {
     int n = a.size();
-    for (int i = 1, j = 0, bit; i < n; i++) {
-        for (bit = n >> 1; j & bit; bit >>= 1) j ^= bit;
-        j ^= bit;
+    for (int i = 1, j = 0, k; i < n; i++) {
+        for (k = n >> 1; (j ^= k) < k; k >>= 1);
         if (i < j) swap(a[i], a[j]);
     }
-    for (int len = 2; len <= n; len <<= 1) {
-        double ang = 2 * PI / len * (inv ? -1 : 1);
-        cd wlen(cos(ang), sin(ang));
-        for (int i = 0; i < n; i += len) {
-            cd w(1);
-            for (int j = 0; j < len / 2; j++) {
-                cd u = a[i + j], v = a[i + j + len / 2] * w;
-                a[i + j] = u + v;
-                a[i + j + len / 2] = u - v;
-                w *= wlen;
+    double ang = 2 * PI / n * (inv ? -1 : 1);
+    vector<cd> w(n / 2);
+    for (int i = 0; i < w.size(); ++i)
+        w[i] = cd(cos(ang * i), sin(ang * i));
+    for (int k = 2; k <= n; k <<= 1) {
+        int s = n / k;
+        for (int i = 0; i < n; i += k)
+            for (int j = 0; j < k / 2; j++) {
+                cd v = a[i + j + k / 2] * w[s * j];
+                a[i + j + k / 2] = a[i + j] - v;
+                a[i + j] += v;
             }
-        }
     }
-    if (inv) for (cd & x : a) x /= n;
+    if (inv) for (cd& x : a) x /= n;
 }
-vector<int> multiply(vector<int> const& a, vector<int> const& b) {
-    vector<cd> fa(a.begin(), a.end()), fb(b.begin(), b.end());
+template <typename T>
+vector<T> multiply(vector<T>& a, vector<T>& b, T mod = 0) {
     int n = 2;
-    while (n < a.size() + b.size()) n <<= 1;
-    fa.resize(n);
-	fb.resize(n);
-    fft(fa, false);
-	fft(fb, false);
-    for (int i = 0; i < n; i++) fa[i] *= fb[i];
-    fft(fa, true);
-    vector<int> result(n);
-    for (int i = 0; i < n; i++) result[i] = round(fa[i].real());
-    return result;
+    while (n <= a.size() + b.size()) n <<= 1;
+    vector<cd> A(n), B(n), C(n), D(n);
+
+    for (int i = 0; i < a.size(); i++)
+        A[i] = {a[i] >> 15, a[i] & 32767};
+    for (int i = 0; i < b.size(); i++)
+        B[i] = {b[i] >> 15, b[i] & 32767};
+    fft(A, 0);
+    fft(B, 0);
+    for (int i = 0; i < n; i++) {
+        int j = i ? n - i : i;
+        cd f1 = (A[i] + conj(A[j])) * cd(0.5, 0),
+           f2 = (A[i] - conj(A[j])) * cd(0, -0.5),
+           f3 = (B[i] + conj(B[j])) * cd(0.5, 0),
+           f4 = (B[i] - conj(B[j])) * cd(0, -0.5);
+        C[i] = f1 * (f3 + f4 * cd(0, 1));
+        D[i] = f2 * (f3 + f4 * cd(0, 1));
+    }
+    fft(C, 1);
+    fft(D, 1);
+    vector<T> ans(a.size() + b.size() + 1);
+    for (int i = 0; i < ans.size(); i++) {
+        T a = (T)round(C[i].real()),
+          b = (T)round(C[i].imag()) + (T)round(D[i].real()),
+          c = (T)round(D[i].imag());
+        if (mod) a %= mod, b %= mod, c %= mod;
+        ans[i] = (a << 30) + (b << 15) + c;
+        if (mod) ans[i] = (ans[i] % mod + mod) % mod;
+    }
+    return ans;
 }
 
 
+/*------------------------------------------------------------------*/
 
-
+//
 typedef complex<double> base;
 void fft(vector<base>& a, bool inv) {
 	int n = a.size();
